@@ -2,6 +2,9 @@
 Imports System.Windows.Forms
 Imports DevExpress.XtraReports.Parameters
 Imports DevExpress.XtraReports.UI
+Imports DevExpress.DataAccess.Sql
+Imports DevExpress.DataAccess.ConnectionParameters
+Imports System.IO
 
 Namespace Reporting_Create_Multi_Value_Report_Parameter
 	Partial Public Class Form1
@@ -14,6 +17,7 @@ Namespace Reporting_Create_Multi_Value_Report_Parameter
 		Private Sub Form1_Load(ByVal sender As Object, ByVal e As EventArgs) Handles Me.Load
 			' Create a report instance.
 			Dim report = New XtraReport1()
+			configureDataSource(report)
 
 			' Create a multi-value parameter and specify its properties. 
 			Dim parameter1 As New Parameter()
@@ -43,7 +47,24 @@ Namespace Reporting_Create_Multi_Value_Report_Parameter
 
 			' Use the parameter to filter the report's data.
 			report.FilterString = "CategoryID in (?CategoryIDs)"
+
 			report.ShowPreview()
+		End Sub
+
+		Private Sub configureDataSource(ByRef report As XtraReport1)
+			Dim projectDirectory = Directory.GetParent(Environment.CurrentDirectory).Parent.FullName
+			Dim databasePath = Path.Combine(projectDirectory, "nwind.db")
+			Dim connectionParameters = New SQLiteConnectionParameters(databasePath, "")
+			Dim dataSource = New SqlDataSource(connectionParameters)
+
+			Dim ordersQuery = New CustomSqlQuery()
+			ordersQuery.Name = "Categories"
+			ordersQuery.Sql = "SELECT * FROM Categories"
+
+			dataSource.Queries.Add(ordersQuery)
+
+			report.DataSource = dataSource
+			report.DataMember = "Categories"
 		End Sub
 	End Class
 End Namespace

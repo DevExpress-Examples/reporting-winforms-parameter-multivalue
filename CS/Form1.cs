@@ -2,6 +2,9 @@ using System;
 using System.Windows.Forms;
 using DevExpress.XtraReports.Parameters;
 using DevExpress.XtraReports.UI;
+using DevExpress.DataAccess.Sql;
+using DevExpress.DataAccess.ConnectionParameters;
+using System.IO;
 
 namespace Reporting_Create_Multi_Value_Report_Parameter {
     public partial class Form1 : Form {
@@ -12,6 +15,7 @@ namespace Reporting_Create_Multi_Value_Report_Parameter {
         private void Form1_Load(object sender, EventArgs e) {
             // Create a report instance.
             var report = new XtraReport1();
+            configureDataSource(ref report);
 
             // Create a multi-value parameter and specify its properties. 
             Parameter parameter1 = new Parameter();
@@ -41,7 +45,24 @@ namespace Reporting_Create_Multi_Value_Report_Parameter {
 
             // Use the parameter to filter the report's data.
             report.FilterString = "CategoryID in (?CategoryIDs)";
+
             report.ShowPreview();
+        }
+
+        private void configureDataSource(ref XtraReport1 report) {
+            var projectDirectory = Directory.GetParent(Environment.CurrentDirectory).Parent.FullName;
+            var databasePath = Path.Combine(projectDirectory, "nwind.db");
+            var connectionParameters = new SQLiteConnectionParameters(databasePath, "");
+            var dataSource = new SqlDataSource(connectionParameters);
+
+            var ordersQuery = new CustomSqlQuery();
+            ordersQuery.Name = "Categories";
+            ordersQuery.Sql = "SELECT * FROM Categories";
+
+            dataSource.Queries.Add(ordersQuery);
+
+            report.DataSource = dataSource;
+            report.DataMember = "Categories";
         }
     }
 }
